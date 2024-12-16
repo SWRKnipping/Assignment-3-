@@ -1,0 +1,13 @@
+import pandas as pd
+import sklearn
+
+filename = "C:/Users/20234323/Downloads/drd-3-binder-quest/train.csv"
+feature_column_name = "SMILES_canonical"
+target_column_name = "target_feature"
+
+df = pd.read_csv(filename)
+molecule = df[feature_column_name]
+target = df[target_column_name]
+
+
+print(target)
