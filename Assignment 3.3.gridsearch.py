@@ -6,8 +6,6 @@ from rdkit.Chem import Draw, MACCSkeys
 from prettytable import PrettyTable
 import pandas as pd
 import joblib
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 # Laad CSV-train-bestand
 train_data = pd.read_csv("C:/Users/20234420/OneDrive - TU Eindhoven/Desktop/Assignment 3 - Programming/drd-3-binder-quest/train.csv")
@@ -74,7 +72,7 @@ def data_augmentation_with_fingerprint(n_variants):
 
     # Train/test-splitsing
     X_train, X_test, y_train, y_test = train_test_split(train, labels, test_size=0.2, stratify=labels, random_state=42)
-    return X_train, X_test, y_train, y_test, train, labels
+    return X_train, X_test, y_train, y_test
 
 def models(X_train, X_test, y_train, y_test):
     randomforest = RandomForestClassifier(n_estimators=100)
@@ -89,16 +87,15 @@ def models(X_train, X_test, y_train, y_test):
     add_rows_to_table("Support vector classifier", y_test, y_pred_clf, i)
     dump_model(clf, "support vector classifier model")
 
-for i in range(1,21,5):
-    X_train, X_test, y_train, y_test, train, labels = data_augmentation_with_fingerprint(i)
+# Twee modellen vergelijken met elkaar 
+for i in range(1, 5, 4):
+    X_train, X_test, y_train, y_test = data_augmentation_with_fingerprint(i)
     models(X_train, X_test, y_train, y_test)
 print(tabel)
 
 
-
-
-
-X_train, X_test, y_train, y_test, train, labels = data_augmentation_with_fingerprint(10)
+# Gridsearch gedeelte om te bepalen welke hyperparameters de beste zijn 
+X_train, X_test, y_train, y_test = data_augmentation_with_fingerprint(10)
 model = RandomForestClassifier(random_state=42)
 
 # Parametergrid: Definieer de mogelijke waarden van hyperparameters
@@ -116,7 +113,7 @@ scoring = {
     "f1": "f1"
 }
 # Stratified K-Fold instellen
-kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+kfold = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
 
 # GridSearchCV instellen
 grid_search = GridSearchCV(
@@ -124,7 +121,7 @@ grid_search = GridSearchCV(
     param_grid=param_grid,
     scoring=scoring,
     cv=kfold,  # Gebruik k-fold cross-validation
-    refit="balanced_accuracy",
+    refit="balanced_accuracy", # Aangeven dat balanced accuracy de belangrijkste metric is
     verbose=2,
     n_jobs=-1  # Gebruik alle beschikbare cores
 )
@@ -145,48 +142,13 @@ print("Accuracy op testset:", metrics.accuracy_score(y_test, y_pred))
 test_smiles_list = test_data["SMILES_canonical"].tolist()
 test_fingerprints = [MACCSkeys.GenMACCSKeys(Chem.MolFromSmiles(sm)) for sm in test_smiles_list]
 test = [list(fp) for fp in test_fingerprints]  # Omzetten naar een lijst van bits
+
 # Beste model toepassen op submission
 best_model = grid_search.best_estimator_
 y_pred_submission = best_model.predict(test)
 sample_submission["target_feature"] = y_pred_submission
 sample_submission.to_csv("C:/Users/20234420/OneDrive - TU Eindhoven/Desktop/sample_submission.csv", index=False)
 
-results = pd.DataFrame(grid_search.cv_results_)
-results.plot(x='param_n_estimators', y='mean_test_f1', kind='line')
-
-
-
-# Pivot de data voor een heatmap
-heatmap_data = results.pivot_table(
-    index='param_max_depth',
-    columns='param_n_estimators',
-    values='mean_test_balanced_accuracy'
-)
-
-# Maak een heatmap
-plt.figure(figsize=(10, 8))
-sns.heatmap(heatmap_data, annot=True, cmap='viridis', fmt=".3f")
-plt.title("Balanced Accuracy voor Hyperparameter Combinaties")
-plt.xlabel("n_estimators")
-plt.ylabel("max_depth")
-plt.show()
-
-
-# Plot verschillende scoringsmetrics
-plt.figure(figsize=(12, 6))
-
-plt.plot(results['mean_test_balanced_accuracy'], label='Balanced Accuracy', marker='o')
-plt.plot(results['mean_test_accuracy'], label='Accuracy', marker='s')
-plt.plot(results['mean_test_f1'], label='F1-Score', marker='^')
-plt.plot(results['mean_test_precision'], label='Precision', marker='x')
-plt.plot(results['mean_test_recall'], label='Recall', marker='d')
-
-plt.title("Vergelijking van Scores voor Hyperparameter Combinaties")
-plt.xlabel("Hyperparameter Combinaties (index)")
-plt.ylabel("Score")
-plt.legend()
-plt.grid()
-plt.show()
 
 
 
