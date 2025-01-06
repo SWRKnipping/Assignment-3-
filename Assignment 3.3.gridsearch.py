@@ -8,11 +8,11 @@ import pandas as pd
 import joblib
 
 # Laad CSV-train-bestand
-train_data = pd.read_csv("C:/Users/20234420/OneDrive - TU Eindhoven/Desktop/Assignment 3 - Programming/drd-3-binder-quest/train.csv")
+train_data = pd.read_csv("train.csv")
 # Laad CSV-test-bestand
-test_data = pd.read_csv("C:/Users/20234420/OneDrive - TU Eindhoven/Desktop/Assignment 3 - Programming/drd-3-binder-quest/test.csv")
+test_data = pd.read_csv("test.csv")
 # Laad submission-bestand
-sample_submission = pd.read_csv("C:/Users/20234420/OneDrive - TU Eindhoven/Desktop/Assignment 3 - Programming/drd-3-binder-quest/sample_submission.csv")
+sample_submission = pd.read_csv("sample_submission.csv")
 
 tabel = PrettyTable()
 tabel.field_names = ["Type of model","N augmentation","Balanced accuracy", "Precision", "Recall", "F1"]
